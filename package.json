@@ -1,0 +1,39 @@
+{
+  "name": "@conformance/spec",
+  "version": "0.1.0",
+  "workspaces": [
+    "runner"
+  ],
+  "description": "Intent Conformance Protocol: a brief, vectors, mutants, and a runner that never sees the implementation.",
+  "keywords": [
+    "intent",
+    "conformance",
+    "conformance-suite",
+    "conformance-testing",
+    "ai",
+    "llm",
+    "specification",
+    "mutation-testing",
+    "code-review",
+    "verification"
+  ],
+  "license": "MIT",
+  "author": "0en",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anton-ecom/conformance.git"
+  },
+  "homepage": "https://github.com/anton-ecom/conformance#readme",
+  "bugs": {
+    "url": "https://github.com/anton-ecom/conformance/issues"
+  },
+  "files": [
+    "SPEC.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

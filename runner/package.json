@@ -1,0 +1,34 @@
+{
+  "name": "@conformance/runner",
+  "version": "0.1.0",
+  "description": "Runner for the Intent Conformance Protocol: judges a suite, and judges an implementation against it.",
+  "keywords": [
+    "conformance",
+    "conformance-testing",
+    "ai",
+    "specification",
+    "mutation-testing",
+    "verification"
+  ],
+  "license": "MIT",
+  "author": "Anton Kumkov",
+  "type": "module",
+  "bin": {
+    "conformance-runner": "./runner.mjs"
+  },
+  "files": [
+    "runner.mjs",
+    "lib/"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anton-ecom/conformance.git",
+    "directory": "runner"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
