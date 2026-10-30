@@ -1,6 +1,6 @@
-# Conformance
+# Code Conformance Runner
 
-A runner for the **[Intent Conformance Protocol](./SPEC.md) 0.2**.
+A runner for the **[Code Conformance Protocol](./SPEC.md) 0.2**.
 
 The protocol is a way to check code nobody can read. Instead of reviewing a diff, you state what
 must be true in a **brief**, write **vectors** that check it case by case, and write **mutants** —
