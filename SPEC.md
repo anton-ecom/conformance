@@ -7,6 +7,7 @@ Author: **[0en](anton@synthetism.ai)**
 **Version 0.3 · 29.10.26 · one chapter per artefact; every rule lives with the thing it governs**
 **Version 0.4 · 29.10.26 · the wire, obligations, and the direction rule**
 **Version 0.5 · 30.10.26 · the surface, machine-readable questions and attack, the specimen**
+**Version 0.6 · 31.10.26 · questions as a channel, attack as a log, conformance as a process**
 
 ---
 
@@ -34,7 +35,7 @@ This document defines **form and verdicts**. It does not define the values of an
 
 | term | definition |
 |---|---|
-| **suite** | A `conformance/` directory containing a brief, vectors, mutants, ops, fixtures |
+| **suite** | A `conformance/` directory containing `suite.yaml`, a brief, vectors, mutants, ops and fixtures. `suite.yaml` is its identity: the version of this document it follows, and the person who answers for it |
 | **pass** | One session, in one context, held by one role (or compatible ones), from a starting point to one handover. What makes it a pass is the fixed context, not its length. Not the same word as a vector that *passes* — a pass produces a verdict, a vector gets one. |
 | **brief** | Prose. Declares invariants. Its `###` headings are invariant ids. Never parsed beyond its headings. |
 | **invariant** | A falsifiable claim about an operation, observable through the surface. Heading form: `### ID — statement`. |
@@ -46,7 +47,7 @@ This document defines **form and verdicts**. It does not define the values of an
 | **op** | A projection. A process that transforms an implementation's output into comparable data. |
 | **mutant** | A deliberately wrong implementation. Written to be rejected, in one declared way. |
 | **fixture** | A frozen value only a machine can produce. Read, never computed. |
-| **question** | A recorded ambiguity, in `questions.yaml`: an id, the invariant it is about, two readings, and a status (§14). Raised downstream; resolved by changing the brief. |
+| **question** | A live question to the owner of the suite, in `questions.yaml`: an id, the invariant or `none`, a status, and the messages exchanged (§14). It is a channel, not a ledger — an answered question leaves the file. |
 | **runner** | A process producing verdicts about a suite or about an implementation. |
 | **implementation** | A process under test. |
 | **adapter** | A process that implements the surface for one implementation: JSON in, JSON out, the library called behind it. Part of the suite, not the code. |
@@ -67,12 +68,12 @@ Gates are ordered. A gate MUST NOT be passed with an open violation.
 | 2 | invariants + vectors + adapter | brief | writer delivered | **writer doesn't see the code**
 | 3 | mutants | brief, vectors | adversary delivered | **adversary blind, attacks the suite, writer defends**
 | 4 | suite | 1–3 | `runner suite` → `ok: true` | 
-| 5 | build | brief, suite | builder delivered | 
+| 5 | build | suite | builder delivered | 
 | 6 | judge | suite, implementation | `runner judge` → `ok: true`, after being red |
 | 7 | attack again | verdict, suite | new mutants; return to 4 | **adversary sees the code, writer defends, still doesn't see the code**
 | 8 | pre-release | 4–7 | suite |
-| 10 | code-review | 4–7 | suite |
-| 11 | release | 4–7 | immutable suite |
+| 9 | code-review | 4–7 | suite |
+| 10 | release | 4–7 | immutable suite |
 
 Gate 3.1 (optional) adversary sees the code, attacks the suite, writer defends.
 
@@ -132,7 +133,7 @@ be held to a decision (Convention 2).
 | **adversary** | r | rw | r | rw | r | r | r | r | r |
 | **builder** | r | rw | r | r | r | r | r | rw | r |
 | **reviewer** | r | rw | r | r | r | r | r | r | rw |
-| **runner** | h | 0 | r | r | r | r | r | r | w |
+| **runner** | h | r | r | r | r | r | r | r | w |
 
 `r` read · `w` write · `0` never · `h` headings only, never prose  · `r*` - `rw` with an exception.
 
@@ -144,8 +145,9 @@ the point of the row: whoever can change anything can also explain why they chan
 ### 6.1 Rules
 
 - A role MUST NOT write outside its column. This table is the whole of the permission model.
-- The runner's `0` on `questions` is not an omission. It validates the shape of a record — id,
-  invariant, status, readings — and never what the readings say. A question is judged by a person.
+- The runner's `r` on `questions` buys it a count, not an opinion. It validates the shape of a
+  record — id, invariant, status, messages — and reports how many are `open` (§17.1). It never reads
+  what a message says. A question is judged by a person.
 - The ACL MUST NOT be mistaken for something enforced. Nothing checks it. It is a contract between
   passes, and it is broken by context rather than by a violation code.
 - The `adapter` is the writer's. It is the surface made executable, it lives inside the suite, and it
@@ -185,24 +187,65 @@ not a statement of it.
 **8. Review the suite, not the code.** If a reviewer cannot judge without the implementation, the
 suite is incomplete — and that is a finding about the suite, not about the reviewer.
 
+**9. Conformance is a process, not a verdict.** No suite is finished and no implementation is proved; both get closer.
+
+A score that says how far is more useful than a boolean that says *not yet*, and it lets a suite ship at ninety per cent for reasons outside the maintainer's control — an error class the surface cannot carry, a library nobody may change.  A score turns it into a number and one question: *what stops us from being 100%?*
+
+The answer is always one of three — a rule that needs writing, code that needs changing, or a limit somebody accepted in writing.  
+
 ---
 
 ## 8. The suite
 
-### 8.1 Format
+A suite is a directory with one shape, and the first thing in it is not the brief.
+
+### 8.1 `suite.yaml`
+
+The head of the suite. It is the only file a reader has to open to know what they are looking at:
+which version of this document the suite follows, and who is answerable for it.
+
+```yaml
+name: "library"
+spec: "0.6"
+owner: 0en
+```
+
+| field | required | meaning |
+|---|---|---|
+| `name` | no | the project the suite belongs to. For a person reading a verdict, never for the runner |
+| `spec` | yes | the version of this document the suite follows |
+| `owner` | yes | one name: the person who answers for the suite |
+
+- `spec` makes the suite and the runner two halves of one promise. A runner implementing a different
+  version MUST NOT judge the suite and MUST NOT emit a verdict (§17.3) — a verdict produced by the
+  wrong rules is worse than none, because it looks like an answer.
+- `spec` changes only by migration. Bumping it is a claim that every artefact has been re-read
+  against a newer document, which is work rather than an edit. A reconstruction writes the first one,
+  because it is the pass that knows a suite is starting.
+- The declared `spec` and the version a runner implements MUST agree on major and minor, and MAY
+  differ on patch: a patch is a fix to the instrument, not to the rules.
+- `owner` is the whole of what makes a **specimen** (§3) visible from outside. `owner: reconstructor`
+  is the honest value while nobody has claimed the suite, and claiming is the edit that replaces that
+  word with a person — after which nothing else has to move for the change to be real.
+- `owner` is not an author: one name, no address. The question it answers is *who decided this*, not
+  *who do I email*. Contact details live in the package's own manifest, one directory up, in whatever
+  form that ecosystem uses.
+
+### 8.2 Format
 
 ```
 conformance/
+  suite.yaml                     the head: spec and owner (§8.1)
   BRIEF.md
-  questions.yaml                 open ambiguity as records: id, invariant, readings, status (§14)
-  attack.yaml                    each adversary pass: what it aimed at, what survived (§13.3)
+  questions.yaml                 live questions to the owner. Answered ones leave (§14)
+  attack.yaml                    the offence and defence log: one record per survivor (§13.3)
   vectors/
     <INVARIANT-ID>.yaml          one file per invariant
   mutants.yaml                   manifest
   mutants/
-    <name>.mjs | <name>.php      mutant executables
+    <name>.mjs      mutant executables
   ops/
-    <name>.mjs | <name>.php      op executables
+    <name>.mjs      op executables
     <name>.yaml                  the op's own vectors (§12)
   fixtures/
     manifest.yaml                name → file, plus a digest
@@ -213,7 +256,7 @@ conformance/
 One file per invariant, one file per op, one manifest for each of mutants and fixtures. A suite is
 read in that shape before it is read at all.
 
-### 8.2 Rules
+### 8.3 Rules
 
 - `<INVARIANT-ID>` MUST equal a `### ID` heading in `BRIEF.md`.
 - A suite MUST contain at least one invariant, one vector and one mutant.
@@ -525,96 +568,107 @@ broken.
 
 ### 13.3 The attack record
 
-`conformance/attack.yaml`, appended once per adversary pass. A human managing a suite without a
-filesystem has to parse what happened, and a claim about what was attacked should be checkable.
+`conformance/attack.yaml`, one record per mutant that survived at handover. It is the offence and
+defence log: an aim was made, and this is what closed it.
 
 ```yaml
-passes:
-  - pass: 2
+records:
+  - id: a1
     date: 2026-10-29
+    mutant: deadbeef lookup
     agent: mutant-leader-v1
-    saw_code: true
-    mutants: [shift leading zero, wrap only zero]
-    survived: [swallow defects]
-    could_not_attack: |
-      The rethrow half of GUARD-001: no input is a defect.
+    read: blind          # blind | code
+    status: closed       # open | closed
+    answer: vector blindness. v4 added a second key deriving its own DID.
 ```
 
 | field | required | meaning |
 |---|---|---|
-| `pass` | yes | integer, increasing. One entry per adversary pass |
-| `date` | yes | when the pass ran |
-| `agent` | yes | who held the adversary role |
-| `saw_code` | yes | `true` or `false`. A blind pass is **recorded**, never assumed |
-| `mutants` | yes | every mutant this pass added, by `name` |
-| `survived` | no | the names the runner rejected nothing for |
-| `could_not_attack` | no | prose: what could not be aimed at, and why |
+| `id` | yes | `a` and an ordinal, unique in the file. Same shape as `v1` and `q1` |
+| `date` | yes | when the aim was made |
+| `mutant` | yes | a `name` in `mutants.yaml` |
+| `agent` | yes | who made the aim |
+| `read` | yes | `blind` or `code`. Had the agent read the implementation when it aimed (§5.1). A blind aim is **recorded**, never assumed |
+| `status` | yes | `open` or `closed` |
+| `answer` | on close | what closed it: a vector, a change to the brief, or why nothing can |
 
-- Every name in `mutants` MUST exist in `mutants.yaml`, and every mutant in the manifest MUST appear in
-  the latest pass (`ATTACK-STALE`). The record and the manifest are one fact seen twice, and two
-  copies can disagree.
-- A name in `survived` MUST be one the runner agrees survived (`ATTACK-STALE`). A record that claims a
-  kill it did not get is the one lie an adversary could tell, and this is where it is caught.
+- attack.yaml MAY NOT be present in the conformance suite.
+- A record is written for a survivor, not for every mutant. A killed mutant is already described by the
+  manifest, and a copy of the manifest records nothing.
+- There is no pass number. A pass is a schedule, a schedule is not evidence, and one week can hold a
+  hundred of them. The date orders the file, `read` separates the two kinds of aim, and neither goes
+  stale when the loop is renumbered.
+- Every `mutant` MUST be a `name` in `mutants.yaml` (`ATTACK-STALE`).
+- A record with `status: closed` MUST carry an `answer` (`FIELD`).
+- An `answer` claiming a kill MUST be one the runner agrees is killed (`ATTACK-STALE`). A record that
+  claims a kill it did not get is the one lie an adversary could tell, and this is where it is caught.
+
+**Two pathways and no third.** If an aim can be made, the outcome is a record here. If it cannot be
+made for a reason outside the agent's control, that is a question to the owner (§14), and it does not
+belong in this file. Feedback that fits neither is dropped: an optional prose key is a place to put
+things nobody acts on, and a historic record cannot afford a field whose meaning is decided case by
+case.
 
 ---
 
 ## 14. Questions
 
-The record of an ambiguity, as data. One file, `questions.yaml`, because a question has a status and a
-status can be checked. Prose cannot.
+A live question to the owner of the suite, as data. One file, `questions.yaml`.
 
-Ambiguity is discovered downstream. The writer holds the brief, so it is the **least** likely to notice
-what the brief fails to say — the adversary notices when it cannot aim a mutant at a claim, and the
-builder notices when it cannot build without guessing. A question records the readings; the brief is
-where the answer goes.
+It is a channel, not a ledger. An answered question leaves the file: the answer belongs in
+`BRIEF.md`, where it can be verified, and the account of what closed a surviving mutant belongs in
+`attack.yaml` (§13.3). What is left here is only what somebody still has to decide.
 
-**A question does not block a gate.** It is reported, not enforced: what is enforced is that every
-question carries a status, and that nothing is `open` at release. The trade is deliberate — enforcement
-moves from the format to the reviewer, who turns the PR down (Convention 2).
+**A question does not block a gate.** The runner reports how many are open and the owner decides
+whether to ship (§17.1). A suite that cannot reach the last per cent for reasons outside the
+maintainer's control is still worth shipping, and closing the question with a written reason is how
+that gets recorded (Convention 9).
 
 ### 14.1 Format
 
 ```yaml
 questions:
-  - id: Q-003
+  - id: q1
     invariant: ISSUE-003
-    status: open          # open | closed | postponed
-    raised_by: adversary  # adversary, builder, reconstructor, human — never the writer
-    raised_at: 3          # the gate the pass was in
-    readings:
-      - direct: refusal whenever the two key ids differ
-      - resolved: acceptance when the document lists the key
-    note: |
-      Free prose. Why it matters, what it blocks, what each reading costs.
-    closed_by: null       # writer | human; null while open
+    status: open          # open | closed
+    raised_by: adversary  # adversary, builder, reconstructor, reviewer, human — never the writer
+    messages:
+      - The brief says a document is resolved and does not say whether the key ids must match.
+      - Writer: v2 expects the ids to match. If that is wrong, v2 and v4 change.
+      - Human: they must match. Brief updated, v2 stands.
     closed_at: null
 ```
 
 | field | required | meaning |
 |---|---|---|
-| `id` | yes | unique within the file |
-| `invariant` | yes | the claim it is about; MUST be a brief heading |
-| `status` | yes | `open`, `closed`, `postponed` |
-| `raised_by` | yes | who could not proceed |
-| `raised_at` | yes | the gate |
-| `readings` | yes | two or more, each a name and what it would mean |
-| `note` | no | prose: the cost of each reading, or why it is postponed |
-| `closed_by` | on close | `writer` or `human` |
+| `id` | yes | `q` and an ordinal, unique in the file. Same shape as `v1` and `a1` |
+| `invariant` | yes | a brief heading, or `none` when the question is about a gap rather than a claim |
+| `status` | yes | `open` or `closed`, and nothing else |
+| `raised_by` | yes | the pass that could not proceed |
+| `messages` | yes | the exchange, oldest first. Plain strings |
 | `closed_at` | on close | the date |
+
+`messages` holds plain strings rather than objects with a `role`, because the human answers by
+editing the file and a bare string is the thing they can type. The convention is that a message names
+its author when it is not obvious, as above.
 
 ### 14.2 Rules
 
-- Anyone **but** the writer MAY raise a question. The writer MUST NOT raise one — it is holding the
-  brief, and a question it asks itself is a decision it declined to make.
-- A question is resolved by changing `BRIEF.md`. The record carries a `closed_by`, a date, and a
-  pointer in `note`; it MUST NOT restate the resolution as a rule. A record that argues is a second
-  source of truth, and the second one always wins because it is fresher.
-- A question MAY stay `open` through any gate. It MUST NOT be `open` at release: by then somebody has
-  answered it or declared it postponed, in writing.
-- Nobody but the writer or the human may close a question. A question closed by the pass that raised it
-  is a question answered by its accuser.
-- The writer proposes the resolution; the human accepts the diff at the gate. The writer may edit the
-  brief — it does not own it.
+- Questions MAY NOT be present in the conformance suite.
+- Anyone **but** the writer MAY raise a question. The writer holds the brief, so a question it asks
+  itself is a decision it declined to make; its findings arrive in its handoff, with the working
+  attached.
+- Only the human closes a question. A question closed by the pass that raised it is a question
+  answered by its accuser.
+- A question is resolved by changing `BRIEF.md`, and the closing message says what changed. The record
+  MUST NOT restate the resolution as a rule: a record that argues is a second source of truth, and the
+  second one always wins because it is fresher.
+- The first message SHOULD name the readings the brief leaves open and what each one costs. It is a
+  convention, not a field. A `readings` field demanding two entries gets two entries nobody
+  considered, and a list that can be satisfied without thinking is worse than a sentence.
+- There is no `raised_at`. A gate number dates the record and goes stale the moment the loop is
+  renumbered; the date does not. `raised_by` says what the gate used to say, and says it better — a
+  question from the builder and a question from the adversary are different problems.
 
 ---
 
@@ -654,7 +708,10 @@ extension (§11.3).
 - A file whose content does not match its recorded digest MUST be reported `FIXTURE-STALE`.
 - A file named in the manifest but missing MUST be reported `PARSE`.
 - A `$fixture.<name>` naming something the manifest does not list MUST NOT resolve to an empty value.
-  It has to fail: a vector that quietly compares `null` is green for the wrong reason.
+  It has to fail: a vector that quietly compares `null` is green for the wrong reason. It is reported
+  as `FIELD` at the vector file, because it is a bad reference in a field rather than a stale file,
+  and it is reported by `suite` rather than at judge time — it is a defect in the suite, and gate 4
+  has to catch it while there is still no implementation to blame.
 
 ---
 
@@ -727,11 +784,16 @@ Two verbs, two shapes, one closed vocabulary each.
 Judges the suite.
 
 ```json
-{ "verb": "suite", "ok": false,
+{ "verb": "suite", "runner": "0.6.1", "spec": "0.6", "ok": false,
   "violations": [ { "code": "MUTANT-SURVIVED", "at": "rounds each line individually" } ],
   "invariants": { "declared": 7, "covered": 3 },
-  "mutants": { "total": 3, "killed": 2, "survived": 1 } }
+  "mutants": { "total": 3, "killed": 2, "survived": 1 },
+  "questions": { "open": 2 }, "owner": "0en" }
 ```
+
+`questions.open` counts the records in `questions.yaml` whose `status` is `open`. It is **reported,
+never a violation**: an open question blocks nothing (§14). A run that prints two is telling the
+owner what they are shipping with.
 
 Violation codes, closed set:
 
@@ -759,7 +821,7 @@ Violation codes, closed set:
 Judges an implementation. No brief, no mutants: it compares executions against `expect`.
 
 ```json
-{ "verb": "judge", "ok": false,
+{ "verb": "judge", "runner": "0.6.1", "spec": "0.6", "ok": false,
   "vectors": { "total": 6, "passed": 4 },
   "failures": [ { "vector": "PRICE-002#v1", "expect": { ... }, "actual": { ... } } ] }
 ```
@@ -768,6 +830,16 @@ Judges an implementation. No brief, no mutants: it compares executions against `
 
 - A verdict MUST be emitted to stdout as exactly one JSON object. Human-readable output MAY be emitted
   to stderr.
+- Every verdict MUST declare `runner`, the version of the instrument that produced it, and `spec`, the
+  version of this document that instrument implements. The two together are the handshake: a verdict
+  is only interpretable against the document it names, and a suite judged by the wrong runner is
+  otherwise indistinguishable from a suite that is wrong.
+- A runner MAY choose any versioning scheme it likes — the version above is ours, and nothing in this
+  document constrains it. What MUST NOT vary is the pair: a runner that reports `spec: "0.6"` MUST
+  implement the rules of 0.6, whatever it calls itself.
+- A runner MUST NOT judge a suite whose declared `spec` (§8.1) differs from the one it implements, and
+  MUST NOT emit a verdict when it refuses. It exits non-zero and says both versions on stderr. A
+  verdict produced by the wrong rules is worse than no verdict, because it looks like an answer.
 - A runner MUST use the codes above and no others. A new code is a change to this document, not an
   extension of a runner.
 - `judge` MUST NOT consult the brief or the mutants. It answers one question: does this process do what
@@ -801,13 +873,14 @@ A missed defect MUST be attributable by inspecting artefacts alone:
 |---|---|
 | no invariant covered it | no brief heading states it |
 | invariant uncovered | `MISSING-VECTOR`, or every vector passes under a mutant aimed at it |
-| vector blind | `MUTANT-SURVIVED`, no question raised against the invariant |
-| claim ambiguous | `MUTANT-SURVIVED`, and `questions.yaml` named the invariant |
+| vector blind | `MUTANT-SURVIVED`, and no closed record in `attack.yaml` explains it |
+| claim ambiguous | `MUTANT-SURVIVED`, and the answer in `attack.yaml` says the brief was sharpened |
 | builder error | `runner judge` red, suite `ok` |
+| nobody asked | an `open` question in `questions.yaml` named the invariant |
 
 ---
 
-## 19. TODO
+## 19. OPEN QUESTIONS
 
 Decisions the format has not made. These are not casualties of a rewrite and nothing here is a
 typo to be fixed: each one is a claim the suite cannot currently express, or a rule whose
@@ -819,6 +892,8 @@ this table is now only what is open.
 | 1 | **Composition** — a claim about two operations cannot be written | `publicKeyFromDidKey(didKeyFromPublicKey(k)) === k` is unexpressible: a vector names one op, and a `given`/`expect` pair has nowhere to hold an intermediate. The strongest promise in a package is usually exactly this shape, and three passes have walked into it. MUST NOT be solved by adding a composite op to the adapter, which tests the adapter. Recorded as `composition:` in `SUSPICIONS.md`. Address early; not before the rebuilds |
 | 2 | A non-JSON stdout MUST be reported as `NOT-JSON` | `NOT-JSON` is not in the closed verdict set, and §16.1 says the vector fails without naming a code. A process that prints prose is a real and distinct failure; the question is whether it deserves a name or a `PARSE` |
 | 3 | One to three vectors per invariant, at least one of them refused | a `MUST` in v0.2, softened to `SHOULD` in §11.4. Hardening it again makes a single-vector invariant a violation, which is a real cost given how short the suites currently are |
-| 4 | `STRUGGLE.md` — one thread per claim, both voices in one place, appended forever | written and **not adopted**; kept as a separate document. It is the reviewer's artefact — what was attacked, what came back — and no one has read it yet. If nothing claims this job by v0.6, delete the file |
+| 4 | **Conformance as a score, not a boolean** | Convention 9 says conformance is a process, and `ok` still says yes or no. A score would report how far — invariants covered, mutants killed, obligations declared, questions closed — so a suite that cannot reach 100 per cent for reasons outside its maintainer's control still ships. Open: what the score counts, whether it is per-suite or per-implementation, and whether a stranger could recompute it from the artefacts alone. Do not build it before the rebuilds; a score designed before five blind rebuilds exist would be guessed |
+| 5 | **An artefact in the suite that no manifest names** | found by hand on 2026-10-31: `mutants/swallow-defects.mjs` sits on disk, `mutants.yaml` does not name it, and the runner walks the manifest so it never sees the file. Nothing reported it, and it was only found by listing the directory. The reverse check is trivial — list `mutants/`, subtract the manifest — but it needs a code, and every code is a change to this document. Decide whether the closed set grows by one, whether the check reuses `FIELD`, or whether an orphan stays a review duty. The same question applies to an op with no vectors and a vector file with no heading |
+| 6 | **Coverage measured against the code, not the suite** | the number that backs a fork: every exported operation of the library claimed by at least one invariant. The denominator MUST come from the code, because every denominator the author sets can be gamed — delete an invariant and the suite is instantly 100 per cent conformant and provably worth nothing. So it cannot be the runner's job (§17.3 forbids linking anything); it is a separate tool that may link, and it produces a report rather than a verdict. Open: how a non-Node language enumerates its exports, how export names map to `operation` names, and where the exports that are not operations — an error class, a type — are declared out of scope. They MUST be declared visibly, in the brief, and never filtered silently, or the denominator shrinks without anybody noticing. The same number makes a blind rebuild checkable by name: a library that reimplements four operations where the original had five is a finding, not a footnote |
 
 ---
