@@ -11,7 +11,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join, relative, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import { parseYaml } from "./lib/yaml.mjs";
 
@@ -527,8 +527,12 @@ if (verb === "suite") {
   process.stdout.write(`${JSON.stringify(verdict, null, 2)}\n`);
   process.exit(verdict.ok ? 0 : 1);
 } else {
+  // Say the name the tool was actually called by. Under `npx` that is `conformance-runner`; run by
+  // path it is the file, and naming the file is not a lie either.
+  const bin = basename(process.argv[1] ?? "conformance-runner");
   process.stderr.write(
-    "usage: runner.mjs suite [--suite <dir>] [--save [dir]] | runner.mjs judge <command> [--suite <dir>] [--save [dir]]\n",
+    `usage: ${bin} suite [--suite <dir>] [--save [dir]]\n` +
+      `       ${bin} judge <command> [--suite <dir>] [--save [dir]]\n`,
   );
   process.exit(2);
 }
