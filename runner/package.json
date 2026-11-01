@@ -1,6 +1,6 @@
 {
   "name": "conformance-runner",
-  "version": "0.6.0",
+  "version": "0.7.2",
   "description": "Runner for the Intent Conformance Protocol: judges a suite, and judges an implementation against it.",
   "keywords": [
     "conformance",

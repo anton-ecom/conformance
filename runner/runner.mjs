@@ -2,7 +2,7 @@
 // The runner. An instrument, not part of the suite.
 //
 //   node runner.mjs suite                    judge the suite. No implementation involved.
-//   node runner.mjs judge <command>          judge an implementation against the suite.
+//   node runner.mjs judge <file.mjs>         judge an implementation against the suite.
 //
 // It knows nothing about credentials, prices, or any other domain word. It spawns processes,
 // compares JSON, and reports. Every executable it runs — an implementation, an op, a mutant — is
@@ -36,7 +36,7 @@ if (saveFlag > -1) {
 const RUNNER = await readFile(new URL("./package.json", import.meta.url), "utf8")
   .then((body) => JSON.parse(body).version)
   .catch(() => "unknown");
-const SPEC = "0.6";
+const SPEC = "0.7";
 
 const majorMinor = (version) => String(version).split(".").slice(0, 2).join(".");
 
@@ -313,6 +313,21 @@ function invariantIds(brief) {
   return [...brief.matchAll(/^###\s+([A-Z][A-Z0-9]*-\d{3})\b/gm)].map((m) => m[1]);
 }
 
+// How much of the suite was claimed and how much was observed. `from` is self-declared, so this is a
+// report rather than a verdict — but it is the number that separates a declaration from a signed
+// description, and a stamp is falsifiable by handing the suite to a stranger (§17.1).
+function provenance(docs) {
+  let brief = 0;
+  let code = 0;
+  for (const doc of docs) {
+    for (const vector of doc.vectors) {
+      if (vector.from === "code") code += 1;
+      else brief += 1;
+    }
+  }
+  return { brief, code };
+}
+
 // --- judging one vector ----------------------------------------------------------------
 
 async function judgeVector(subject, vector) {
@@ -394,11 +409,27 @@ async function suite() {
   //    does not implement issue".
   //  - a mutant whose target has no vectors yet cannot be judged at all. That is MISSING-VECTOR's
   //    business, not the mutant's, so it is skipped rather than reported as survived.
-  let mutantManifest;
+  //
+  // A manifest that does not parse is a third thing, and it used to be swallowed: the runner fell
+  // back to an empty list, reported every invariant UNFALSIFIABLE, and buried the one line that said
+  // why. Thirty-seven mutants went quiet and the verdict blamed the invariants for it.
+  let mutantManifest = { mutants: [] };
+  let mutantBody = null;
   try {
-    mutantManifest = parseYaml(await readFile(join(SUITE, "mutants.yaml"), "utf8"));
+    mutantBody = await readFile(join(SUITE, "mutants.yaml"), "utf8");
   } catch {
-    mutantManifest = { mutants: [] };
+    // Absent is legal: a suite may carry no mutants at all.
+  }
+  if (mutantBody !== null) {
+    try {
+      mutantManifest = parseYaml(mutantBody) ?? { mutants: [] };
+    } catch (error) {
+      note("PARSE", "mutants.yaml", String(error.message).split("\n")[0]);
+    }
+    if (!Array.isArray(mutantManifest?.mutants)) {
+      note("FIELD", "mutants.yaml", '"mutants" is not a sequence');
+      mutantManifest = { mutants: [] };
+    }
   }
   const aims = new Set();
 
@@ -482,6 +513,7 @@ async function suite() {
     mutants,
     questions: { open },
     owner,
+    provenance: provenance(vectorDocs.values()),
   };
 }
 
@@ -493,9 +525,11 @@ async function judge(command) {
   const vectorDir = join(SUITE, "vectors");
   let total = 0;
   const failures = [];
+  const docs = [];
   for (const file of await list(vectorDir, ".yaml")) {
     const doc = await loadVectorFile(join(vectorDir, file), { requireInvariant: true });
     if (!doc) continue;
+    docs.push(doc);
     for (const vector of doc.vectors) {
       total += 1;
       const result = await judgeVector(command, { ...vector, operation: doc.operation });
@@ -510,6 +544,7 @@ async function judge(command) {
     vectors: { total, passed: total - failures.length },
     failures,
     owner,
+    provenance: provenance(docs),
   };
 }
 
@@ -532,7 +567,8 @@ if (verb === "suite") {
   const bin = basename(process.argv[1] ?? "conformance-runner");
   process.stderr.write(
     `usage: ${bin} suite [--suite <dir>] [--save [dir]]\n` +
-      `       ${bin} judge <command> [--suite <dir>] [--save [dir]]\n`,
+      `       ${bin} judge <file.mjs> [--suite <dir>] [--save [dir]]\n` +
+      `       <file.mjs> is one executable, spawned with node — not a shell command.\n`,
   );
   process.exit(2);
 }
