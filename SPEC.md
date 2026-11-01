@@ -8,6 +8,9 @@ Author: **[0en](anton@synthetism.ai)**
 **Version 0.4 · 29.10.26 · the wire, obligations, and the direction rule**
 **Version 0.5 · 30.10.26 · the surface, machine-readable questions and attack, the specimen**
 **Version 0.6 · 31.10.26 · questions as a channel, attack as a log, conformance as a process**
+**Version 0.7 · 01.11.26 · provenance: how much of a suite came from a brief**
+**Version 0.7 · editorial · 01.11.26 · §5.1 grants the builder its questions exception; §16.1 states
+the refusal shape the runner and every suite already used. No verdict changes.**
 
 ---
 
@@ -115,7 +118,10 @@ be held to a decision (Convention 2).
   runner: once a file is written it has no author.
 - The writer MUST NOT read the builder's reasoning. It MAY read the implementation; what it MUST NOT
   do is derive `expect` from it (§11.4).
-- The builder MUST NOT write outside the implementation.
+- The builder MUST NOT write outside the implementation, **except to raise a question (§14)**. Its `rw`
+  on `questions` (§6) is that exception and nothing else. A role that is forbidden to record what it
+  had to guess does not stop guessing — it guesses silently, which is the one outcome the rule exists
+  to prevent.
 - **Order.** A pass settles its claims first, and MAY read the implementation afterwards. Anything it
   writes after reading the code is an **observation**, not a claim: it carries `from: code`, and the
   brief declares itself reconstructed. A pass that has read the implementation MAY still tidy the
@@ -390,7 +396,7 @@ vectors:
 | `id` | yes | unique within the file. A position, not a name |
 | `title` | yes | what this case asserts, in one line. A claim, not a label |
 | `fn` | no | path to an op. Applied to the implementation's output before comparison |
-| `from` | no | `brief` (default) or `code`. `code` means the case was observed, not claimed |
+| `from` | no | `brief` (default) or `code`. `code` means the case was observed, not claimed. This is what `provenance` counts |
 | `given` | yes | the input |
 | `expect` | yes | the compared value. **Exact**; extra fields fail |
 
@@ -737,8 +743,13 @@ stdout   one JSON object
 - A stdout that is not one JSON object MUST fail the vector. Nothing is salvaged from it, and there is
   no partial credit: protocol chatter on stdout is how a run becomes unreadable.
 - Refusal MUST be data. An operation expresses a refusal as a returned object. A thrown error is
-  observable only if the brief declares it; when it does, the vector expresses it as
-  `expect: { throws: <message> }`.
+  observable only if the brief declares it; when it does, the brief also declares **the shape the
+  error crosses in**, and the vector's `expect` is that shape exactly. The runner does not interpret
+  it — `expect` is compared by deep equality, and the adapter is what puts the error on the wire — so
+  the shape is a claim the brief makes, not one the protocol makes for it.
+  `{ "throws": { "name": …, "message": … } }` is the shape to reach for: it is what `name` in a
+  vector implies, it is the only shape that can carry the class (§16.2), and a brief that sends only
+  the message has made the class unclaimable for no gain.
 - An executable SHOULD NOT write to stderr either, except when it is a diagnostic someone will read.
 
 ### 16.2 The surface
@@ -763,7 +774,7 @@ worth accepting:
 | | example | verdict |
 |---|---|---|
 | **invisible and irrelevant** | whether the decoder uses a big integer type or a byte array; whether there is a cache; how the loop is written | accept it. No boundary behaviour changes, so there is nothing to claim |
-| **invisible and relevant** | the error's class: an implementation that throws one type and one that throws another differ, and the suite currently cannot see it | not a limit — a **surface that is too narrow**, and a decision you can revisit |
+| **invisible and relevant** | the error's class: an implementation that throws one type and one that throws another differ, and a brief that sends only the message cannot see it | not a limit — a **surface that is too narrow**, and a decision you can revisit |
 
 The boundary is drawn by the brief, not by the language. An error class is invisible because the brief
 chose to send the message and not the class; send both and the class becomes a claim like any other.
@@ -784,16 +795,31 @@ Two verbs, two shapes, one closed vocabulary each.
 Judges the suite.
 
 ```json
-{ "verb": "suite", "runner": "0.6.1", "spec": "0.6", "ok": false,
+{ "verb": "suite", "runner": "0.7.0", "spec": "0.7", "ok": false,
   "violations": [ { "code": "MUTANT-SURVIVED", "at": "rounds each line individually" } ],
   "invariants": { "declared": 7, "covered": 3 },
   "mutants": { "total": 3, "killed": 2, "survived": 1 },
-  "questions": { "open": 2 }, "owner": "0en" }
+  "questions": { "open": 2 }, "owner": "0en",
+  "provenance": { "brief": 12, "code": 46 } }
 ```
 
 `questions.open` counts the records in `questions.yaml` whose `status` is `open`. It is **reported,
 never a violation**: an open question blocks nothing (§14). A run that prints two is telling the
 owner what they are shipping with.
+
+`provenance` counts every vector by its `from` field: how many were claimed from the brief, and how
+many were observed in code. It is **reported, never a violation**, and the document does not say
+which number is better — but the two of them together answer a question nothing else answers.
+
+A suite whose vectors are all `from: code` is a description somebody signed. A suite whose vectors
+are all `from: brief` is a declaration. The runner does not judge the difference because it cannot:
+`from` is self-declared, and a writer may stamp every vector it likes. What makes the number mean
+something is that the stamp is falsifiable — a suite claimed from intent can be handed to a stranger
+who rebuilds the library from it, and a suite stamped to look like intent cannot survive that.
+
+This is the measurement of how much of a library is written in this document rather than in its own
+source: `prompt → suite` scores zero code and a full brief; `prompt → code → reconstruction` scores
+the reverse. Between them is everything worth knowing about where the code actually came from.
 
 Violation codes, closed set:
 
@@ -821,9 +847,10 @@ Violation codes, closed set:
 Judges an implementation. No brief, no mutants: it compares executions against `expect`.
 
 ```json
-{ "verb": "judge", "runner": "0.6.1", "spec": "0.6", "ok": false,
+{ "verb": "judge", "runner": "0.7.0", "spec": "0.7", "ok": false,
   "vectors": { "total": 6, "passed": 4 },
-  "failures": [ { "vector": "PRICE-002#v1", "expect": { ... }, "actual": { ... } } ] }
+  "failures": [ { "vector": "PRICE-002#v1", "expect": { ... }, "actual": { ... } } ],
+  "provenance": { "brief": 6, "code": 0 } }
 ```
 
 ### 17.3 Rules
@@ -895,5 +922,16 @@ this table is now only what is open.
 | 4 | **Conformance as a score, not a boolean** | Convention 9 says conformance is a process, and `ok` still says yes or no. A score would report how far — invariants covered, mutants killed, obligations declared, questions closed — so a suite that cannot reach 100 per cent for reasons outside its maintainer's control still ships. Open: what the score counts, whether it is per-suite or per-implementation, and whether a stranger could recompute it from the artefacts alone. Do not build it before the rebuilds; a score designed before five blind rebuilds exist would be guessed |
 | 5 | **An artefact in the suite that no manifest names** | found by hand on 2026-10-31: `mutants/swallow-defects.mjs` sits on disk, `mutants.yaml` does not name it, and the runner walks the manifest so it never sees the file. Nothing reported it, and it was only found by listing the directory. The reverse check is trivial — list `mutants/`, subtract the manifest — but it needs a code, and every code is a change to this document. Decide whether the closed set grows by one, whether the check reuses `FIELD`, or whether an orphan stays a review duty. The same question applies to an op with no vectors and a vector file with no heading |
 | 6 | **Coverage measured against the code, not the suite** | the number that backs a fork: every exported operation of the library claimed by at least one invariant. The denominator MUST come from the code, because every denominator the author sets can be gamed — delete an invariant and the suite is instantly 100 per cent conformant and provably worth nothing. So it cannot be the runner's job (§17.3 forbids linking anything); it is a separate tool that may link, and it produces a report rather than a verdict. Open: how a non-Node language enumerates its exports, how export names map to `operation` names, and where the exports that are not operations — an error class, a type — are declared out of scope. They MUST be declared visibly, in the brief, and never filtered silently, or the denominator shrinks without anybody noticing. The same number makes a blind rebuild checkable by name: a library that reimplements four operations where the original had five is a finding, not a footnote |
+| 7 | **Ports and class state as surface** | an operation's real shape is `(ports, args) → (ports', result)`. If every port is substitutable the operation is pure again, and everything inside the boundary becomes describable: declare the object's state and its ports in `given`, return them in `expect`. Open: whether state belongs in the vector shape or stays an adapter convention — left alone, two writers pick two shapes and neither is wrong; how a fake repository is declared, as a `$repository` substitution beside `$fixture` or as a fresh port per vector; and what a port that cannot be substituted should be. It is a finding about the code rather than about the suite, so `MISSING-VECTOR` is the wrong code for it, and the temptation to reuse `FIELD` will produce a verdict nobody can act on |
+| 8 | **Sessions and sequences** | the process contract is one object in, one object out, one process per call (§16), so a claim spanning two operations has nowhere to live — this is row 1's cause, not a separate problem. The smallest change that fixes it: a mode where the process stays alive and reads one JSON object per line, and a vector that is a *program* of steps, each naming an operation and able to read `$step.N.result`. Open: how the mode is negotiated (a flag, a first message, or a field in `suite.yaml`); whether `expect` compares the last step, the whole trace, or both; what a stateless mutant does when a session is used; and whether a one-step program is literally today's vector — it must be, or every existing suite is rewritten. A step list is still an instance: sessions make composition checkable, not proved |
+| 9 | **Traces and effects** | an emitted event or a call order is invisible only because the brief chose not to send it (§16.2), which is the same reason an error class was invisible. If the adapter returns `emitted: [...]` and the expected order, sequencing inside an operation becomes a claim like any other. Open: whether a trace is a `fn` projection or part of the process contract; how much noise an honest trace carries when `expect` must be exact (§11.4); and whether a mediator can be described at all without the trace, or only ever as its final return value |
+| 10 | **What the format claims to describe** | after rows 7–9 the honest scope is: operations inside a boundary whose ports are substitutable, evaluated as a sequence. That covers the libraries this is built for — small, effectively side-effect-free services — and excludes interleaved concurrency, timing and resource behaviour. No amount of protocol turns one schedule into a claim about all of them. Open: whether the scope limit is stated in the abstract as a limit, or left to each brief; and what a suite should do when an operation is deterministic only because nobody injected the clock. Both are cheap to decide and expensive to leave implicit, because "it does not fit my codebase" is the first objection any maintainer raises |
+| 11 | **The shaping experiment** | the claim that a suite produces more injectable code than a prose specification is testable now with no protocol change: same task, same model, two arms — a prose spec and a conformance suite — then measure how many ports are declared, whether state serialises, whether an ambient clock or randomness survives, and whether a blind rebuild from the suite converges. Open: what counts as injectable *as a number*, how many tasks make the result mean anything, and whether the rebuild arm uses the same model. Until it runs, the shaping claim is a prediction. It must not appear anywhere as a result |
+| 12 | **What earlier meta-languages actually had** | an inquiry, not a decision. Several attempts exist at "the language you instruct an AI coder in", and none has settled. What this document can take from them is structural only: pick three or four and compare each on four questions — is the claim checkable without its author, is the verdict reproducible, does it survive a change of implementation, and does it say what it cannot describe. A candidate that fails the last question is an input format; one that passes all four is a protocol. Record the comparison and adopt nothing from it |
+| 13 | **The build-and-judge entry point, and who owns it** | every builder so far has run a build and then `judge` by hand, and two of five missed the working directory or judged a stale build. The fix is one script — build, then `judge --save <dir>` — but it MUST NOT live in `suite.yaml`: a suite that names a build command is a suite shaping the instrument, which is why a `prejudge` hook was rejected. It belongs to the package, beside the adapter it feeds. Open: whether the protocol names that artefact at all or leaves it a convention each project invents; what it may contain (an unconditional build is defensible, a conditional one is a judgement the instrument may not make); whether the runner should print the resolved path of the file it spawns, so a wrong-file run is visible without a verdict change; and whether `--save` should default to a per-pass directory, since one folder of five passes is already ambiguous to a builder who arrives later |
+| 14 | **The public surface as a claim: exports and types** | the suite sees the wire and nothing else. Two green rebuilds of the same package shipped different TypeScript surfaces — one exported a branded `DidKey` and returned it, the other deleted the export and returned `string` — and no vector, mutant or op can tell, because types are erased before anything crosses a process boundary. Row 6 puts non-operation exports out of scope for a coverage denominator; that is not the same as saying nobody promises them. What a downstream consumer actually depends on is the export list, and that is claimable today with no protocol change: an `ops/exports.mjs` is judged at gate 4 with no implementation in existence, so the surface is pinned as intent before it is written, and the adapter exposes the same operation at gate 6. Open: what a kind is in a language-neutral way (`function`, `class`, `type` — and is a type a name at all, or a shape); whether the list belongs in the brief as a `## Exports` invariant, as `exports.yaml`, or only as a vector; and what it costs when a rename reddens a suite with behaviour unchanged — the same cost this document already accepts for a message string |
+| 15 | **Decisions as an artefact, with ids** | the Decisions table is the most load-bearing thing in a brief and the least maintainable. Five passes turned on one row; deleting it silently changed what two builders wrote, and both stayed green. A three-column markdown table has no identity for a row, is hostile to edit without a visual editor, and cannot be referenced from anywhere else in the suite. `decisions.yaml` would give each choice an `id`, a `status`, a `cost`, and a `closes` that a question can point at. Open: the field set; whether a superseded decision is deleted or kept with `superseded_by` — the deleted narrative handover of 2026-11-01 argues for deleting, and the guard row deleted by accident the same day argues for keeping, so the likely answer is that narrative is deleted and decisions are superseded; and whether the runner validates the file at all, which would make the first rule about prose this document has ever written |
+| 16 | **Questions that carry the answers, and the loop they close** | a question today carries `messages`, a thread. A builder that reasoned properly has three candidate readings and a cost for each, and prose is where that reasoning dies. A `solutions:` list — each a reading and what it costs — would let an engineer decide from structure instead of reading an essay, and a closed question would name the decision that closed it (`decision: d5`), which gives the protocol the loop it lacks: builder raises, engineer decides, writer records, question closes. Open: whether `solutions` sits beside `messages` or replaces it — §14 makes `messages` required, so *adding* a field is legal today and reddens nothing, while *replacing* it turns a `FIELD` into a pass and is a verdict change; whether the runner should read `decision:` at all; and whether a question closed with no decision behind it is a violation or a review duty |
+| 17 | **The role cards, and how they stay true** | every pass on 2026-11-01 corrected the builder guide, and every correction came from a builder rather than an author: an ACL summary that said `questions` was read-only when §6 says `rw`; a rule that said stop in one section and *a question blocks nothing* in another; a directory that is allowed to be absent but was not said to be; a message that had to be reconstructed by putting two invariant files side by side. The guide is now longer than the module it produces, and two builders named the cost — a 300-line method and a 900-line spec, for a 134-line file. The fix is a closed reading list per role and one page of instruction, but a card that restates the spec is a second description of the truth, and two of the day's drifts were exactly that. Open: whether a card quotes the normative text with section numbers or is checked against it mechanically; where the argument goes when it is cut from the card, since it must still be readable by a human; and whether a card is versioned with the spec, because drift is only possible while they move separately |
 
 ---
