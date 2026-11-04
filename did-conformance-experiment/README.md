@@ -21,16 +21,19 @@ Each pass folder has the artefact (`did-key.ts`), the saved verdict (`judge.json
 ## What happened
 
 **Pass 1: Updating existing code** 
+
 Suit reconstructed from the code. Writer claims, Adversary attacks (blind+full). Suite red. Builder updates the code to green.
 
 Take-away: **Conformance loop confirmed:**  `Cold-start -> Suite -> Claim -> Attack -> Update`
 
 **Pass 2: Blind build**
+
 Builder builds the code without the brief. Used `suite judge` to verify the code. It was unintentional, but useful. 
 
 Take-away: **Brief is optional, vectors and mutatns are enough**
 
 **Pass 3: full access, wrong anyway.**
+
 Pass 3 had everything (suite, adapter, mutants, codec), except for crucial `decision` -  ("the guard swallows every throw"). 
 
 Result:
