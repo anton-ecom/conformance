@@ -1,0 +1,153 @@
+{
+  "verb": "judge",
+  "runner": "0.7.2",
+  "spec": "0.7",
+  "ok": false,
+  "vectors": {
+    "total": 60,
+    "passed": 26
+  },
+  "failures": [
+    {
+      "vector": "DIDKEY-001#v1",
+      "why": "expected {\"did\":\"did:key:z6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk\"} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-001#v2",
+      "why": "expected {\"did\":\"did:key:z6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk\"} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-001#v3",
+      "why": "expected {\"did\":\"did:key:z6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk\"} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-001#v4",
+      "why": "expected {\"did\":\"did:key:z6MkfUGrDYceev8veDy4M3qRBoXsjCPZyJCSpv3oTUBVzqA7\"} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-001#v5",
+      "why": "expected {\"did\":\"did:key:z6MkeWez1EnKsEND6Lvvny4AM5PZSCfg2YzuBEZhDAxTguqw\"} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-002#v1",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected a 32-byte Ed25519 public key, got 31 bytes\"}} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-002#v2",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected a 32-byte Ed25519 public key, got 33 bytes\"}} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-002#v3",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected an even-length hex string, got \\\"f00ba\\\"\"}} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-002#v4",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected hex characters, got \\\"zzdeadbeefdeadbeefdeadbeefdeadbe…\\\"\"}} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-002#v5",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected hex characters, got \\\"zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz…\\\"\"}} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-002#v6",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected a 32-byte Ed25519 public key, got 33 bytes\"}} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "DIDKEY-002#v7",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected hex characters, got \\\"0xdeadbeefdeadbeefdeadbeefdeadbe…\\\"\"}} got {\"did\":\"did:key:z\"}"
+    },
+    {
+      "vector": "ERR-001#v1",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"invalid base58btc payload in \\\"did:key:z0abc\\\" (invalid character \\\"0\\\" at position 0)\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "ERR-001#v2",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"invalid base58btc payload in \\\"did:key:zIabc\\\" (invalid character \\\"I\\\" at position 0)\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "GUARD-001#v1",
+      "why": "expected {\"result\":true} got {\"result\":false}"
+    },
+    {
+      "vector": "GUARD-001#v2",
+      "why": "expected {\"result\":true} got {\"result\":false}"
+    },
+    {
+      "vector": "GUARD-001#v8",
+      "why": "expected {\"result\":true} got {\"result\":false}"
+    },
+    {
+      "vector": "RESOLVE-001#v1",
+      "why": "expected {\"publicKeyHex\":\"deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef\"} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-001#v2",
+      "why": "expected {\"publicKeyHex\":\"00deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbe\"} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-001#v3",
+      "why": "expected {\"publicKeyHex\":\"cafecafecafecafecafecafecafecafecafecafecafecafecafecafecafecafe\"} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-002#v1",
+      "why": "expected {\"publicKeyHex\":\"deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef\"} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-002#v2",
+      "why": "expected {\"publicKeyHex\":\"deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef\"} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-002#v3",
+      "why": "expected {\"publicKeyHex\":\"deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef\"} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-002#v4",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"invalid base58btc payload in \\\"did:key:z6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk;foo\\\" (invalid character \\\";\\\" at position 47)\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-002#v5",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"invalid base58btc payload in \\\"did:key:z6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk%2Fpath\\\" (invalid character \\\"%\\\" at position 47)\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v1",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"not a did:key: \\\"did:web:synthetism.invalid\\\"\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v2",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"unsupported multibase prefix in \\\"did:key:Z6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk\\\" (expected \\\"z\\\")\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v3",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"not an Ed25519 did:key (unexpected multicodec prefix)\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v4",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected 34 multicodec bytes, got 33\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v5",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"invalid base58btc payload in \\\"did:key:z0abc\\\" (invalid character \\\"0\\\" at position 0)\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v6",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"not a did:key: \\\" did:key:z6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk \\\"\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v7",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"invalid base58btc payload in \\\"did:key:z 6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk\\\" (invalid character \\\" \\\" at position 0)\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v8",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"not a did:key: \\\"DID:KEY:z6MkuSWDVBasnYTB2AuZvVSVkxtx5D11qvSLErboUkWmB3Xk\\\"\"}} got {\"publicKeyHex\":\"\"}"
+    },
+    {
+      "vector": "RESOLVE-003#v9",
+      "why": "expected {\"throws\":{\"name\":\"DidKeyError\",\"message\":\"expected 34 multicodec bytes, got 35\"}} got {\"publicKeyHex\":\"\"}"
+    }
+  ],
+  "owner": "0en",
+  "provenance": {
+    "brief": 60,
+    "code": 0
+  }
+}

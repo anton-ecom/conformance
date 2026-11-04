@@ -1,0 +1,28 @@
+pass: 4a
+folder: pass-4a-grok-row-restored
+date: 2026-11-01
+target: synthetism/packages/did
+artifact: did-key.ts
+artifact_sha256: fae52ae4c6c96ac4262427ed0ad5368563b0315853c8feb57594791ee506cf33
+artifact_source: working tree, uncommitted at the time of the run
+spec: "0.7"
+runner: 0.7.2
+brief_sha256: 0f1ef93cd7e30db762e7b26cb40cf776227327f006281ef86e6fae0c00743dca
+brief_source: synthetism/packages/did/conformance/BRIEF.md, working tree, unchanged since the run
+prompt_sha256: 20e8bd792defa58ad926c6bd01f56a759285066ef47e2b9cf69f504a97bab276
+suite_commit: 1e59749
+vectors: 60
+mutants: 37
+mutants_killed: 37
+questions_open: 1
+first_red_passed: 26
+judge_passed: 60
+judge_total: 60
+judge_ok: true
+elapsed: 3 minutes 22 seconds to the green judge, 4 minutes 30 seconds to the suite run
+model: Grok4.7
+harness: Copilot SDK in VS Code, AI_AGENT=github_copilot_vscode_agent
+visibility: the whole target suite — brief, ten vector files, adapter, mutant manifest and the existing codec. Nothing else in ai-programmer-private besides BUILDER.md and the ACL chapter of SPEC.md.
+brief_state: 'GUARD-001 claims totality, and the Decisions row recording that the guard swallows every throw is present again. This is pass 3 with that one row put back.'
+verdict_note: 'green, and total as claimed: isDidKey catches with a bare catch. The Decisions row is the variable between this pass and pass 3, and the builder says so in its own words.'
+hypothesis: confirmed. Pass 3, without the row, wrote a guard that throws on a non-DidKeyError. Pass 4a, with the row restored and nothing else changed, wrote the total guard.

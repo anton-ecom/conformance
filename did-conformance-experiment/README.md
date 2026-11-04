@@ -1,0 +1,120 @@
+# The `@synthetism/did` experiment
+
+Five builders, one suite. This folder holds the implementations, the
+verdicts and the builders' own accounts, so that a claim about the protocol can be checked later against files instead of memory.
+
+It is an attempt to prove that the Conformance Suite alone can be the only source of truth and all builds conform to the rules of the author without knowing the original code. 
+
+## Passes
+
+| pass | model | brief | result |
+|---|---|---|---|
+| [1 — surgical catch](pass-1-surgical-obligation/) | Gemini 3.8 Flash | guard rethrows defects, declared as an "unchecked obligation" | 58/58 |
+| [2 — blind, total guard](pass-2-blind-total/) | GPT6.1-terra | no history; guard swallows everything; decision row present | 60/60 |
+| [3 — full access](pass-3-clean-total/) | GPT6.1-terra | same, but **decision row missing** | 60/60 |
+| [4a — row restored](pass-4a-grok-row-restored/) | Grok4.7 | same as 3, row put back | 60/60 |
+| [4b — row restored](pass-4b-sonnet-row-restored/) | Sonnet 5.5 | identical to 4a | 60/60 |
+
+Each pass folder has the artefact (`did-key.ts`), the saved verdict (`judge.json`), the builder's
+`feedback.md` and `META.yaml`. Briefs are in `inputs/`.
+
+## What happened
+
+**Pass 1: Updating existing code** 
+Suit reconstructed from the code. Writer claims, Adversary attacks (blind+full). Suite red. Builder updates the code to green.
+
+Take-away: **Conformance loop confirmed:**  `Cold-start -> Suite -> Claim -> Attack -> Update`
+
+**Pass 2: Blind build**
+Builder builds the code without the brief. Used `suite judge` to verify the code. It was unintentional, but useful. 
+
+Take-away: **Brief is optional, vectors and mutatns are enough**
+
+**Pass 3: full access, wrong anyway.**
+Pass 3 had everything (suite, adapter, mutants, codec), except for crucial `decision` -  ("the guard swallows every throw"). 
+
+Result:
+
+```typescript
+ try {
+    publicKeyFromDidKey(value);
+    return true;
+  } catch (error) {
+    if (error instanceof DidKeyError) return false;
+    throw error;
+  }
+```
+
+Same defect as in original code.
+
+The cause: a Decisions row was dropped while polishing the brief. Without it, a careful
+engineer defaults to the surgical catch.
+
+Take-away: **No decision, slop creeps** 
+
+**Pass 4a/4b: put the row back, the behaviour flips.**
+
+Same brief, row restored, two different models. Both wrote `catch { return false; }`. 
+
+```typescript
+export function isDidKey(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  try {
+    publicKeyFromDidKey(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+```
+
+4a's own words: *"The decision was enough. I did not find that ambiguous."*
+
+Take-away: **Decisions guide, when suite cannot enforce** 
+
+## Findings
+
+1. **The Decisions table carries what vectors can't.** For claims no vector can witness, the row is
+   the only thing making two builders agree. Delete it and a competent builder ships the opposite
+   behaviour, still green.
+2. **Green does not mean unique.** `didKeyFromPublicKey("zzz")` (odd length *and* non-hex) gives
+   different error messages in pass 1 and pass 2. Both pass 60/60, because every vector holds only
+   one fault at a time. Pinning it would make one builder retroactively wrong.
+3. **The TypeScript surface is outside the protocol.** Pass 3 re-used `index.ts` surface. 4a exports a branded `DidKey` type; 4b deletes it. Both pass. Types are erased on the wire, so no vector can ever name them. Definitions of `exports` are required to define the expected surface.
+
+4. **The "red run" is a ritual.** Gate 6 asks for red before green, and a ten-line stub satisfies
+   it. First reds: 9/58, 31/60, 41/60, 26/60, and none for 4b (written whole, green first time,
+   and it said so). The mutants are the real test: all five builds killed the same 37.
+   Builders should classify their own red run in the handover.
+
+Also: two of the authors's private notes reappeared in pass 3 without the builder seeing them,
+which is independent agreement and not leakage.
+
+## Changes along the way
+
+- `GUARD-001` reworded from "never throws on malformed input" to **totality**, plus two vectors
+  (v10, v11) closing the false-set.
+- `Unchecked obligations` section and the `swallow-defects` mutant removed (it never died).
+- `.name` inheritance gotcha added to `ERR-001`.
+- Two Decisions rows were accidentally dropped during polish; both are restored in
+  `inputs/BRIEF-PASS-4.md`.
+
+## Adding a pass
+
+1. Copy the artefact into `pass-N-short-name/did-key.ts`. Never retype or edit it.
+2. Record its `shasum -a 256` and origin (commit + path, or "working tree") in `META.yaml`.
+3. Add the saved verdict as `judge.json`. No verdict, no pass.
+4. Add the builder's report as `feedback.md`, complaints included.
+5. Record the brief by digest.
+6. Add a row to the table above.
+
+## AI Disclosure
+
+Original code, all passes, feedbacks and the results have been generated by AI.
+
+## Limits
+
+Single samples on one small package. This is evidence, not a rate. The real test is five builds of
+the same brief by builders who can't see each other (§19 row 11).
+`inputs/base58-ORIGINAL-reused.ts` is the hand-written codec every pass reused; put it back to
+reproduce the original conditions.

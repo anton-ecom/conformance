@@ -1,0 +1,24 @@
+{
+  "verb": "suite",
+  "runner": "0.7.2",
+  "spec": "0.7",
+  "ok": true,
+  "violations": [],
+  "invariants": {
+    "declared": 10,
+    "covered": 10
+  },
+  "mutants": {
+    "total": 37,
+    "killed": 37,
+    "survived": 0
+  },
+  "questions": {
+    "open": 1
+  },
+  "owner": "0en",
+  "provenance": {
+    "brief": 60,
+    "code": 0
+  }
+}

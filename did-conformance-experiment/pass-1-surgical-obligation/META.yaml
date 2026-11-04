@@ -1,0 +1,26 @@
+pass: 1
+folder: pass-1-surgical-obligation
+date: 2026-11-01
+target: synthetism/packages/did
+artifact: did-key.ts
+artifact_sha256: 96497c5091ead8a22f8706ab9b8757690943b3c391838fdb65353be353d40c47
+artifact_source: synthetism/packages git 9006766, path did/src/did-key.ts
+spec: "0.7"
+runner: 0.7.0
+brief_sha256: fe3b710b2e2c85344386b69d07d95930bde92ae4373be5725ac94ce82443d64a
+brief_source: synthetism/packages git 4141dcc, path did/conformance/BRIEF.md
+suite_commit: 4141dcc
+vectors: 58
+mutants: 37
+mutants_killed: 37
+questions_open: 2
+first_red_passed: 9
+judge_passed: 58
+judge_total: 58
+judge_ok: true
+elapsed: about 7 minutes, one iteration
+model: Gemini 3.8 Flash (High)
+harness: Antigravity Agentic IDE
+visibility: full suite — brief, vectors, mutants, ops, fixtures and adapter
+brief_state: 'GUARD-001 claims a surgical catch. The rethrow half is an unchecked obligation, checked by "the adversary mutants, then code review".'
+verdict_note: 'green on the surface. The obligation was not honoured: the wrap one layer up turns any codec defect into DidKeyError, which the guard is then required to turn into false.'

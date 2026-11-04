@@ -1,0 +1,16 @@
+{
+  "verb": "judge",
+  "runner": "0.7.0",
+  "spec": "0.7",
+  "ok": true,
+  "vectors": {
+    "total": 58,
+    "passed": 58
+  },
+  "failures": [],
+  "owner": "0en",
+  "provenance": {
+    "brief": 58,
+    "code": 0
+  }
+}

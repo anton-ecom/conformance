@@ -1,0 +1,26 @@
+pass: 2
+folder: pass-2-blind-total
+date: 2026-11-01
+target: synthetism/packages/did
+artifact: did-key.ts
+artifact_sha256: d6e455a8e3790adc565d6bc0157e01fb1f5b0e7b271b3a970d41efb8e5773a9e
+artifact_source: working tree, uncommitted at the time of the run
+spec: "0.7"
+runner: 0.7.2
+brief_sha256: 3ee7c7a920c9592ac52a8da72ed3d4d36c25219c9ee7d39bc374f4dc5d325a81
+brief_source: synthetism/packages git 1e59749, path did/conformance/BRIEF.md. Corrected 2026-11-01: the digest first recorded here was taken after the brief was polished, which happened after this run.
+suite_commit: 1e59749
+vectors: 60
+mutants: 37
+mutants_killed: 37
+questions_open: 1
+first_red_passed: 31
+judge_passed: 60
+judge_total: 60
+judge_ok: true
+elapsed: 1 minute 46 seconds, from the build request to the saved verdict
+model: not disclosed by the harness
+harness: Copilot SDK in VS Code
+visibility: brief and protocol only. The suite was prohibited by the request, which the builder read as prohibiting the target suite as well; failures were diagnosed from verdict output alone.
+brief_state: 'GUARD-001 claims totality. The surgical catch and the unchecked obligation are gone, mutants/swallow-defects.mjs is deleted, and the cost is recorded in the Decisions table.'
+verdict_note: green, and the guard is total as claimed. No vector can witness the difference — see the sensitivity result in ../README.md.

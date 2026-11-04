@@ -1,0 +1,29 @@
+pass: 4b
+folder: pass-4b-sonnet-row-restored
+date: 2026-11-01
+target: synthetism/packages/did
+artifact: did-key.ts
+artifact_sha256: 146170f43086394dd7cb4805cef2cfce69feebbd1bd62653ac33674c9ee3553a
+artifact_source: working tree, uncommitted at the time of the run
+spec: "0.7"
+runner: 0.7.2, reached with npx -y conformance-runner@0.7 — the first pass to use the published tag
+brief_sha256: 0f1ef93cd7e30db762e7b26cb40cf776227327f006281ef86e6fae0c00743dca
+brief_source: synthetism/packages/did/conformance/BRIEF.md, working tree
+prompt_sha256: 20e8bd792defa58ad926c6bd01f56a759285066ef47e2b9cf69f504a97bab276
+suite_commit: 1e59749
+vectors: 60
+mutants: 37
+mutants_killed: 37
+questions_open: 2
+judge_passed: 60
+judge_total: 60
+judge_ok: true
+first_red: none. Both saved judges are green; the builder states plainly that it wrote the module once, from the vectors, and never had a failing run.
+elapsed: about 3 minutes 30 seconds, task message to final judge
+model: Sonnet 5.5, per the owner. The builder reports the model as not exposed in-session.
+harness: Copilot SDK in VS Code
+visibility: BUILDER.md, BRIEF.md, every vector and mutants.yaml. It did not read SPEC.md, and says so.
+brief_state: identical to pass 4a — totality claimed, guard decision row present. This is the cross-model half of the row test.
+verdict_note: 'green, total guard, same as pass 4a. The row survives a second model. What differs is everything the suite cannot see: this build removed the `DidKey` export from index.ts and returns plain `string`, so two conformant builds now ship different TypeScript surfaces.'
+raised: 'q2 — when a DID URL is refused, is the whole input quoted or only the base DID. Unpinned by every vector. Chose, recorded, shipped.'
+rule_broken: 'gate 6 requires a red judge before the green. There is none. The builder named it rather than hiding it.'

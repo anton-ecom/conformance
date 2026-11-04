@@ -1,0 +1,27 @@
+pass: 3
+folder: pass-3-clean-total
+date: 2026-11-01
+target: synthetism/packages/did
+artifact: did-key.ts
+artifact_sha256: 529cb1d1d271c99803da280097045d19fee45b457fdcbb994d6305812998d0eb
+artifact_source: working tree, uncommitted at the time of the run
+spec: "0.7"
+runner: 0.7.2
+brief_sha256: f46687b43f3f5ca2e39dfa313e1e3c19d83bb8aa20a2b6363d12fc0c48d1d6a9
+brief_source: synthetism/packages/did/conformance/BRIEF.md, working tree at 13:58, four minutes before the run
+suite_commit: 1e59749, for the suite files; the brief above is newer than that commit
+vectors: 60
+mutants: 37
+mutants_killed: 37
+questions_open: 1
+first_red_passed: 41
+judge_passed: 60
+judge_total: 60
+judge_ok: true
+elapsed: 2 minutes 27 seconds, from the request to the saved verdict
+model: not disclosed by the harness
+harness: Copilot SDK in VS Code
+visibility: full suite — brief, vectors, adapter, mutant manifest and the existing codec. No projection ops in this suite.
+brief_state: 'GUARD-001 claims totality: every input returns a boolean, none throws. No Decisions row records that the guard swallows defects, and the row that carried the class-on-the-wire trade-off was deleted at 13:58, four minutes before this run.'
+verdict_note: 'green, and wrong about its brief. isDidKey rethrows anything that is not a DidKeyError, which contradicts the invariant sentence it was given. No vector can witness the difference. Gate 9 finding, not a gate 6 one.'
+contamination_risk: cleared. The architect note was the owner's private notes and the builder had no access to it. The two changes it appears to anticipate were independent arrivals.
