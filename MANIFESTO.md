@@ -8,7 +8,7 @@ As a programmer, you were a digital craftsman. You owned what you made because y
 
 Then came the "AI-slop" storm.
 
-Between 2021 and 2025, the lineage broke. What was once the joyous work of the human mind became a series of automated prompt-and-output pipelines. Programmers became review-monitors, then prompters, and finally, just operators. A slop-machine operator. The code, generated in infinite volume by massive, un-accountable models, lost its human voice. Open-source maintainers found themselves buried under avalanches of AI-generated Pull Requests—fast-food code that looked passable but often contained hidden rot, CVE vulnerability landmines, and subtle hallucinated bugs. 
+Between 2021 and 2025, the lineage broke. What was once the joyous work of the human mind became a series of automated prompt-and-output pipelines. Programmers became review-monitors, then prompters, and finally, just operators. A slop-machine operator. The code, generated in infinite volume by massive, un-accountable models, lost its human voice. Open-source maintainers found themselves buried under avalanches of AI-generated Pull Requests of fast-food code that looked passable but often contained hidden rot, CVE vulnerability landmines, and subtle hallucinated bugs. 
 
 The "dark stack" of the internet has grown replacement-heavy, fragile, and volatile.
 
